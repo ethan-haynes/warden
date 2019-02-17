@@ -45,7 +45,6 @@ def check_connection( host, port, udp, ipv6 ):
 
     try:
         result = sock.connect_ex( ( host, port ) )
-        print(result)
     except sock_errors as e:
         return print(e)
 
@@ -63,11 +62,11 @@ def check_connection( host, port, udp, ipv6 ):
 @click.option('-p', '--port', type=int, required=True,
               help='port to connect to -- [PORT]')
 @click.option('--udp', is_flag=True,
-              help='enable udp for protocol')
+              help='enable UDP for protocol -- default is TCP')
 @click.option('-6', '--ipv6', is_flag=True,
-              help='enable IPv6 support for addressing')
+              help='enable IPv6 support for addressing -- default is IPv4')
 def app( host, port, udp, ipv6 ):
-    """Simple program that checks port on given host."""
+    """Simple program that checks a single port on given host."""
     check_connection( host, port, udp, ipv6 )
 
 if __name__ == '__main__':
