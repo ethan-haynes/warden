@@ -14,7 +14,9 @@ def check_connection( host, port, udp, ipv6, timeout, message ):
         'sock_type'  : socket.IPPROTO_UDP if udp else socket.IPPROTO_TCP,
         'addr_family': None,
         'sock_family': None,
-        'ip'    : None
+        'address'    : None,
+        'result'     : None,
+        'reason'     : None
     }
 
     try:
@@ -24,44 +26,50 @@ def check_connection( host, port, udp, ipv6, timeout, message ):
             proto=s_settings['sock_type']
         )
     except sock_errors as e:
-        return print(e)
+        return print({ 'error': str(e) })
 
     for addr in addr_info:
         af, sf = addr[0], addr[1]
-        ip = addr[-1][0]
+        address = addr[-1]
         if (ipv6 and af == socket.AF_INET6) or (not ipv6 and af == socket.AF_INET):
             s_settings['addr_family'] = af
             s_settings['sock_family'] = sf
-            s_settings['ip'] = ip
+            s_settings['address'] = address
+
 
     if s_settings['addr_family'] == None:
-        return
+        return print({
+            'error': f'address family for host {host} does not match provided type of { "IPv6" if ipv6 else "IPv4"}'
+        })
 
     sock = socket.socket(
-        family=s_settings['addr_family'],
+        family=socket.AF_INET,
         type=s_settings['sock_family'],
         proto=s_settings['sock_type']
     )
 
     sock.settimeout(timeout)
-    result = None
     try:
         if udp:
-            sock.sendto(bytes(message, 'utf-8'), ( host, port ))
-            result = sock.recv(1024)
-            print(result)
-        else: result = sock.connect_ex( ( host, port ) )
+            sock.sendto(bytes(message, 'utf-8'), address)
+            s_settings['result'] = sock.recv(1024)
+        else:
+            s_settings['result'] = sock.connect_ex( address )
     except sock_errors as e:
-        print(e)
+        s_settings['reason'] = str(e)
     finally:
         sock.close()
 
-    print({
+    out = {
         'host': host,
         'port': port,
-        'up'  : ( result != None ),
-        'ip'  : s_settings['ip']
-    })
+        'up'  : ( s_settings['result'] != None if udp else  s_settings['result'] == 0 ),
+        'ip'  : s_settings['address'][0]
+    }
+    if s_settings['reason'] != None:
+        out['reason'] = s_settings['reason'] # adding failure reason
+
+    print(out)
 
 @click.group()
 @click.pass_context
