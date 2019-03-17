@@ -10,14 +10,14 @@ sock_errors = (
 )
 
 def check_connection( host, port, udp, ipv6, timeout, message ):
-    s_settings = {
-        'sock_type'  : socket.IPPROTO_UDP if udp else socket.IPPROTO_TCP,
-        'addr_family': None,
-        'sock_family': None,
-        'address'    : None,
-        'result'     : None,
-        'reason'     : None
-    }
+    s_settings = dict(
+        sock_type=socket.IPPROTO_UDP if udp else socket.IPPROTO_TCP,
+        addr_family=None,
+        sock_family=None,
+        address=None,
+        result=None,
+        reason=None
+    )
 
     try:
         addr_info = socket.getaddrinfo(
